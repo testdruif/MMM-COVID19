@@ -159,7 +159,7 @@ Module.register("MMM-COVID19", {
           serious = this.translate('N/A'),
           casesPerM = this.translate('N/A');
           activeCases = (cases && totalRecovered)?
-              this.numberWithCommas(parseInt(cases.replace(",","")) - parseInt(totalRecovered.replace(",","")))
+		this.numberWithCommas(parseInt(cases.replace(/,/g,"")) - parseInt(totalRecovered.replace(/,/g,"")) - parseInt(deaths.replace(/,/g,"")))
               :"";
 
       worldNameCell.innerHTML = this.translate('Worldwide')
@@ -279,11 +279,13 @@ Module.register("MMM-COVID19", {
           statsDateCell = document.createElement("td");
 
       statsDateCell.innerHTML = this.translate('statistic taken at ') + this.countriesStats['statistic_taken_at'] + ' (UTC)'
-      if (this.config.delta) {
-      		statsDateCell.colSpan = "7"
-    	} else {
-		statsDateCell.colSpan = "5"
-	}
+      if (this.config.delta && this.config.showExtraInfo) {
+	      statsDateCell.colSpan = "9"
+      } else if (this.config.delta || this.config.showExtraInfo) {
+	      statsDateCell.colSpan = "7" 
+      } else {
+	      statsDateCell.colSpan = "5"
+      }
       statsDateCell.className = 'last-update'
 
       statsDateRow.appendChild(statsDateCell)
