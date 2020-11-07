@@ -98,9 +98,12 @@ Module.register("MMM-COVID19", {
         headerCountryNameCell = document.createElement("td"),
         headerRecoveredCell = document.createElement("td"),
         headerDeathsCell = document.createElement("td"),
+	headerDeathsPerMCell = document.createElement("td"),
         headerNewDeathsCell = document.createElement("td"),
         headerSeriousCell = document.createElement("td"),
-        headerActiveCell = document.createElement("td");
+        headerActiveCell = document.createElement("td"),
+        headerTotalTestsCell = document.createElement("td"),
+        headerTestsPerMCell = document.createElement("td");
 
     headerCountryNameCell.innerHTML = ''
     headerConfirmedCell.className = 'number confirmed ' + this.config.headerRowClass
@@ -111,6 +114,8 @@ Module.register("MMM-COVID19", {
     headerNewConfirmedCell.innerHTML = this.translate('New Cases')
     headerDeathsCell.className = 'number deaths ' + this.config.headerRowClass
     headerDeathsCell.innerHTML = this.translate('Deaths')
+    headerDeathsPerMCell.className = 'number deaths ' + this.config.headerRowClass
+    headerDeathsPerMCell.innerHTML = this.translate('Deaths per M')
     headerNewDeathsCell.className = 'number deaths ' + this.config.headerRowClass
     headerNewDeathsCell.innerHTML = this.translate('New Deaths')
     headerSeriousCell.className = 'number serious ' + this.config.headerRowClass
@@ -119,6 +124,10 @@ Module.register("MMM-COVID19", {
     headerRecoveredCell.innerHTML = this.translate('Recovered')
     headerActiveCell.className = 'number active ' + this.config.headerRowClass
     headerActiveCell.innerHTML = this.translate('Active')
+    headerTotalTestsCell.className = 'number ' + this.config.headerRowClass
+    headerTotalTestsCell.innerHTML = this.translate('Total Tests')
+    headerTestsPerMCell.className = 'number ' + this.config.headerRowClass
+    headerTestsPerMCell.innerHTML = this.translate('Tests per M')
 
     headerRow.appendChild(headerCountryNameCell)
     headerRow.appendChild(headerConfirmedCell)
@@ -129,6 +138,7 @@ Module.register("MMM-COVID19", {
       headerRow.appendChild(headerNewConfirmedCell)
     }
     headerRow.appendChild(headerDeathsCell)
+    headerRow.appendChild(headerDeathsPerMCell)
     if (this.config.delta) {
       headerRow.appendChild(headerNewDeathsCell)
     }
@@ -137,6 +147,8 @@ Module.register("MMM-COVID19", {
     }
     headerRow.appendChild(headerRecoveredCell)
     headerRow.appendChild(headerActiveCell)
+    headerRow.appendChild(headerTotalTestsCell)
+    headerRow.appendChild(headerTestsPerMCell)
 
     wrapper.appendChild(headerRow)
     // WorldWide row, activate it via config
@@ -146,22 +158,27 @@ Module.register("MMM-COVID19", {
           confirmedCell = document.createElement("td"),
           newCasesCell = document.createElement("td"),
           deathsCell = document.createElement("td"),
+	  deathsPerMCell = document.createElement("td"),
           newDeathsCell = document.createElement("td"),
           seriousCell = document.createElement("td"),
           recoveredCell = document.createElement("td"),
           activeCell = document.createElement("td"),
           casesPerMCell = document.createElement("td"),
+	  totalTestsCell = document.createElement("td"),
+	  testsPerMCell = document.createElement("td"),
           cases = globalStats["total_cases"],
           newCases = globalStats["new_cases"],
           deaths = globalStats["total_deaths"],
           newDeaths = globalStats["new_deaths"],
           totalRecovered = globalStats["total_recovered"],
-          serious = this.translate('N/A'),
-          casesPerM = this.translate('N/A');
+          serious = globalStats["serious_critical"],
+          casesPerM = globalStats["total_cases_per_1m_population"],
+	  deathsPerM = globalStats["deaths_per_1m_population"];
           activeCases = (cases && totalRecovered)?
 		this.numberWithCommas(parseInt(cases.replace(/,/g,"")) - parseInt(totalRecovered.replace(/,/g,"")) - parseInt(deaths.replace(/,/g,"")))
               :"";
-
+	  totalTests = this.translate('N/A'),
+	  testsPerM = this.translate('N/A'),
       worldNameCell.innerHTML = this.translate('Worldwide')
       worldNameCell.className = this.config.infoRowClass
       worldRow.className = 'world ' + this.config.infoRowClass
@@ -175,6 +192,8 @@ Module.register("MMM-COVID19", {
       }
       deathsCell.className = 'number deaths ' + this.config.infoRowClass
       deathsCell.innerHTML = deaths
+      deathsPerMCell.className = 'number deaths ' + this.config.infoRowClass
+      deathsPerMCell.innerHTML = deathsPerM
       newDeathsCell.className = 'number deaths ' + this.config.infoRowClass
       if (newDeaths) {
         newDeathsCell.innerHTML = newDeaths
@@ -185,6 +204,10 @@ Module.register("MMM-COVID19", {
       recoveredCell.innerHTML = totalRecovered
       activeCell.className = 'number active ' + this.config.infoRowClass
       activeCell.innerHTML = activeCases
+      totalTestsCell.className = 'number ' + this.config.infoRowClass
+      totalTestsCell.innerHTML =  totalTests
+      testsPerMCell.className = 'number ' + this.config.infoRowClass
+      testsPerMCell.innerHTML = testsPerM
 
       worldRow.appendChild(worldNameCell)
       worldRow.appendChild(confirmedCell)
@@ -195,6 +218,7 @@ Module.register("MMM-COVID19", {
         worldRow.appendChild(newCasesCell)
       }
       worldRow.appendChild(deathsCell)
+      worldRow.appendChild(deathsPerMCell)
       if (this.config.delta) {
         worldRow.appendChild(newDeathsCell)
       }
@@ -203,7 +227,8 @@ Module.register("MMM-COVID19", {
       }
       worldRow.appendChild(recoveredCell)
       worldRow.appendChild(activeCell)
-
+      worldRow.appendChild(totalTestsCell)
+      worldRow.appendChild(testsPerMCell)
       wrapper.appendChild(worldRow)
     }
     // countries row, one per country listed at config => countries
@@ -216,10 +241,13 @@ Module.register("MMM-COVID19", {
             casesPerMCell = document.createElement("td"),
             newCasesCell = document.createElement("td"),
             deathsCell = document.createElement("td"),
+            deathsPerMCell = document.createElement("td"),
             newDeathsCell = document.createElement("td"),
             seriousCell = document.createElement("td"),
             recoveredCell = document.createElement("td"),
             activeCell = document.createElement("td"),
+	    totalTestsCell = document.createElement("td"),
+	    testsPerMCell = document.createElement("td"),
             countryName = value["country_name"],
             cases = value["cases"],
             deaths = value["deaths"],
@@ -228,7 +256,10 @@ Module.register("MMM-COVID19", {
             newDeaths = value["new_deaths"],
             totalRecovered = value["total_recovered"],
             activeCases = value["active_cases"],
-            casesPerM = value["total_cases_per_1m_population"];
+            casesPerM = value["total_cases_per_1m_population"],
+	  totalTests = value["total_tests"],
+	  testsPerM = value["tests_per_1m_population"],
+	deathsPerM = value["deaths_per_1m_population"];
 
         countryNameCell.innerHTML = this.translate(countryName)
         countryNameCell.className = this.config.infoRowClass
@@ -242,6 +273,8 @@ Module.register("MMM-COVID19", {
         }
         deathsCell.className = 'number deaths ' + this.config.infoRowClass
         deathsCell.innerHTML = deaths
+        deathsPerMCell.className = 'number deaths ' + this.config.infoRowClass
+        deathsPerMCell.innerHTML = deathsPerM
         newDeathsCell.className = 'number deaths ' + this.config.infoRowClass
         if (newDeaths) {
           newDeathsCell.innerHTML = newDeaths
@@ -252,6 +285,10 @@ Module.register("MMM-COVID19", {
         recoveredCell.innerHTML = totalRecovered
         activeCell.className = 'number active ' + this.config.infoRowClass
         activeCell.innerHTML = activeCases
+      totalTestsCell.className = 'number ' + this.config.infoRowClass
+      totalTestsCell.innerHTML =  totalTests
+      testsPerMCell.className = 'number ' + this.config.infoRowClass
+      testsPerMCell.innerHTML = testsPerM
 
         countryRow.appendChild(countryNameCell)
         countryRow.appendChild(confirmedCell)
@@ -262,6 +299,7 @@ Module.register("MMM-COVID19", {
           countryRow.appendChild(newCasesCell)
         }
         countryRow.appendChild(deathsCell)
+        countryRow.appendChild(deathsPerMCell)
         if (this.config.delta) {
           countryRow.appendChild(newDeathsCell)
         }
@@ -270,6 +308,8 @@ Module.register("MMM-COVID19", {
         }
         countryRow.appendChild(recoveredCell)
         countryRow.appendChild(activeCell)
+      countryRow.appendChild(totalTestsCell)
+      countryRow.appendChild(testsPerMCell)
 
         wrapper.appendChild(countryRow)
       }
